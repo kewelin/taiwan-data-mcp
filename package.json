@@ -1,0 +1,36 @@
+{
+  "name": "taiwan-data-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Taiwan public data — 實價登錄行情、公司登記查核、165 防詐查詢。Lets AI assistants (Claude, Cursor, etc.) query real Taiwan data.",
+  "type": "module",
+  "bin": {
+    "taiwan-data-mcp": "src/server.mjs"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "smoke": "node test/smoke.mjs"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "taiwan",
+    "台灣",
+    "實價登錄",
+    "公司登記",
+    "防詐",
+    "real-estate",
+    "open-data"
+  ],
+  "author": "林克威 (KWL)",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
