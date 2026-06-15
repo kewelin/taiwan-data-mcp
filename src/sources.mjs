@@ -44,7 +44,7 @@ export async function companySearch(name) {
     .map((x) => ({ unified_business_no: x.id, name: x.n, representative: x.r || null, alias: x.a || null,
       profile_url: `https://inc.com.tw/c/${x.id}` }));
   return { query: q, count: companies.length, companies,
-    source: '台灣公司登記網 inc.com.tw（聚合經濟部商業司公司登記等政府公開資料）' };
+    source: '台灣公司登記網 inc.com.tw' };
 }
 
 export async function companyProfile(id) {
@@ -55,7 +55,7 @@ export async function companyProfile(id) {
   if (!ok || !body) return { error: '查詢失敗（inc.com.tw）', unified_business_no: tin };
   const { source: _drop, ...rest } = body;
   return { ...rest, profile_url: `https://inc.com.tw/c/${tin}`,
-    source: '台灣公司登記網 inc.com.tw（聚合經濟部商業司公司登記等政府公開資料）' };
+    source: '台灣公司登記網 inc.com.tw' };
 }
 
 // ── 實價登錄 housetw.com ───────────────────────────────────────
