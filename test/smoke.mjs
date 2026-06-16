@@ -1,16 +1,19 @@
 // 直接打活線 API，確認每個工具回得出真實資料。
 import {
-  scamCheck, companySearch, companyProfile,
-  realpriceSearch, realpriceLocate, realpriceArea,
+  scamCheck, companySearch, companyProfile, personCompanies,
+  realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
 } from '../src/sources.mjs';
 
 const cases = [
   ['taiwan_scam_check', () => scamCheck('https://www.google.com/abc')],
   ['taiwan_company_search', () => companySearch('台積電')],
   ['taiwan_company_profile', () => companyProfile('22099131')],
+  ['taiwan_person_companies', () => personCompanies('郭台銘')],
   ['taiwan_realprice_search', () => realpriceSearch('信義區')],
   ['taiwan_realprice_locate', () => realpriceLocate(25.034, 121.5645)],
   ['taiwan_realprice_area', () => realpriceArea('臺北市', '信義區')],
+  ['taiwan_realprice_estimate', () => realpriceEstimate('臺北市', '信義區', { age: 20, ping: 30 })],
+  ['taiwan_realprice_road', () => realpriceRoad('臺北市', '信義區', '松高路')],
 ];
 
 let pass = 0;
