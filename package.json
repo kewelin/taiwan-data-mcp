@@ -30,6 +30,14 @@
   ],
   "author": "林克威 (KWL)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kewelin/taiwan-data-mcp.git"
+  },
+  "homepage": "https://github.com/kewelin/taiwan-data-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/kewelin/taiwan-data-mcp/issues"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
   }
