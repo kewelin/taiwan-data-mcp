@@ -107,6 +107,58 @@ export async function companyRisk(id) {
   };
 }
 
+// ── 政府標案 PCC（g0v 政府採購開放資料）─────────────────────────
+const PCC_BASE = 'https://pcc-api.openfun.app';
+
+function _fmtTenderDate(d) {
+  const s = String(d || '');
+  return s.length === 8 ? `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}` : s || null;
+}
+function _mapTender(r) {
+  const b = r.brief || {};
+  const names = b.companies?.names || [];
+  return {
+    date: _fmtTenderDate(r.date),
+    title: b.title || null,
+    type: b.type || null,
+    agency: r.unit_name || null,
+    companies: names,
+    tender_url: r.url ? `https://pcc.g0v.ronny.tw${r.url}` : null,
+  };
+}
+
+export async function tenderByCompany(name) {
+  const q = String(name || '').trim();
+  if (q.length < 2) return { error: '公司名稱至少 2 個字' };
+  const { ok, body } = await fetchJson(`${PCC_BASE}/api/searchbycompanyname?query=${encodeURIComponent(q)}`, { timeout: 20000 });
+  if (!ok || !body || !Array.isArray(body.records)) return { error: '查詢失敗（政府採購開放資料）', query: q };
+  return {
+    query: q,
+    total: body.total_records ?? body.records.length,
+    showing: Math.min(body.records.length, 25),
+    tenders: body.records.slice(0, 25).map(_mapTender),
+    note: '含該廠商參與投標或得標的採購案；以廠商名比對',
+    source: '政府電子採購網（公共工程委員會）開放資料 · 透過 g0v PCC API',
+  };
+}
+
+export async function tenderSearch(keyword, page = 1) {
+  const q = String(keyword || '').trim();
+  if (q.length < 2) return { error: '搜尋關鍵字至少 2 個字' };
+  const p = Math.max(1, Number(page) || 1);
+  const { ok, body } = await fetchJson(`${PCC_BASE}/api/searchbytitle?query=${encodeURIComponent(q)}&page=${p}`, { timeout: 20000 });
+  if (!ok || !body || !Array.isArray(body.records)) return { error: '查詢失敗（政府採購開放資料）', query: q };
+  return {
+    query: q,
+    page: p,
+    total: body.total_records ?? null,
+    total_pages: body.total_pages ?? null,
+    showing: Math.min(body.records.length, 25),
+    tenders: body.records.slice(0, 25).map(_mapTender),
+    source: '政府電子採購網（公共工程委員會）開放資料 · 透過 g0v PCC API',
+  };
+}
+
 // ── 藥品／健康 health-hub ───────────────────────────────────────
 const HEALTH_BASE = 'https://health-hub-epx.pages.dev';
 

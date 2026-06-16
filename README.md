@@ -19,7 +19,9 @@
 | `taiwan_realprice_estimate` | 自動估價：單價區間與推估總價 | housetw.com |
 | `taiwan_realprice_road` | 查某路段成交行情與逐年走勢 | housetw.com |
 | `taiwan_drug_search` | 用中文藥名搜尋核准藥品、取許可證字號 | [health-hub](https://health-hub-epx.pages.dev)（衛福部食藥署） |
-| `taiwan_drug_info` | 用許可證字號查藥品主要成分 | health-hub |
+| `taiwan_drug_info` | 用許可證字號查藥品成分／適應症／健保價／回收／短缺 | health-hub |
+| `taiwan_gov_tender_by_company` | 查某公司投標／得標的政府採購案 | 政府電子採購網（g0v PCC API） |
+| `taiwan_gov_tender_search` | 用標案名稱關鍵字搜尋政府採購案 | 政府電子採購網（g0v PCC API） |
 
 跨工具串接是重點：例如「查這家公司 → 看它登記地址那區的房價 → 查它官網是不是詐騙」，一次問答內 AI 自己串起來。
 
@@ -75,6 +77,7 @@ node test/e2e.mjs  # MCP 協定層測試
 - 公司登記查核 — **[inc.com.tw](https://inc.com.tw)**（台灣公司登記網）
 - 165 防詐查詢 — **[fraud.tw](https://fraud.tw)**（防詐雷達）
 - 藥品／健康查詢 — **[health-hub](https://health-hub-epx.pages.dev)**（衛福部食藥署資料）
+- 政府標案查詢 — 政府電子採購網開放資料（透過 [g0v PCC API](https://pcc.g0v.ronny.tw)）
 
 三站皆為聚合台灣政府開放資料的免費查詢服務。
 

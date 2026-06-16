@@ -6,6 +6,7 @@ import {
   scamCheck, companySearch, companyProfile, personCompanies, companyRisk,
   realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
   drugSearch, drugInfo,
+  tenderByCompany, tenderSearch,
 } from './sources.mjs';
 
 const TOOLS = [
@@ -157,6 +158,31 @@ const TOOLS = [
     },
     run: (a) => drugInfo(a.license_no),
   },
+  {
+    name: 'taiwan_gov_tender_by_company',
+    description:
+      '查某公司／廠商參與投標或得標的政府採購案，回傳標案名稱、機關、公告類型、日期與相關廠商。可搭配公司查核做盡職調查（這家公司接過哪些政府標案）。資料來源：政府電子採購網開放資料（g0v PCC API）。',
+    inputSchema: {
+      type: 'object',
+      properties: { company: { type: 'string', description: '公司／廠商名稱，例如「大同股份有限公司」' } },
+      required: ['company'],
+    },
+    run: (a) => tenderByCompany(a.company),
+  },
+  {
+    name: 'taiwan_gov_tender_search',
+    description:
+      '用標案名稱關鍵字搜尋政府採購案，回傳標案、機關、得標廠商與日期（可翻頁）。資料來源：政府電子採購網開放資料（g0v PCC API）。',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        keyword: { type: 'string', description: '標案名稱關鍵字，例如「口罩」「資訊服務」' },
+        page: { type: 'number', description: '頁碼（可選，預設 1）' },
+      },
+      required: ['keyword'],
+    },
+    run: (a) => tenderSearch(a.keyword, a.page),
+  },
 ];
 
 const server = new Server(
@@ -181,4 +207,4 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('taiwan-data-mcp running (stdio) — 12 tools: 防詐 / 公司登記 / 實價登錄 / 藥品健康');
+console.error('taiwan-data-mcp running (stdio) — 14 tools: 防詐 / 公司登記 / 實價登錄 / 藥品健康 / 政府標案');
