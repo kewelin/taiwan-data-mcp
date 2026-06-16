@@ -107,6 +107,39 @@ export async function companyRisk(id) {
   };
 }
 
+// ── 藥品／健康 health-hub ───────────────────────────────────────
+const HEALTH_BASE = 'https://health-hub-epx.pages.dev';
+
+export async function drugSearch(name) {
+  const q = String(name || '').trim();
+  if (q.length < 1) return { error: '請提供藥品名稱關鍵字' };
+  const { ok, body } = await fetchJson(`${HEALTH_BASE}/api/suggest?q=${encodeURIComponent(q)}`);
+  if (!ok || !Array.isArray(body)) return { error: '查詢失敗（health-hub）', query: q };
+  const drugs = body.map((d) => {
+    let lic = '';
+    try { lic = decodeURIComponent((d.href || '').replace(/^\/drug\//, '')); } catch { lic = (d.href || '').replace(/^\/drug\//, ''); }
+    return { name: d.name, license_no: lic, detail: d.href ? `${HEALTH_BASE}${d.href}` : undefined };
+  });
+  return { query: q, count: drugs.length, drugs,
+    source: '衛福部食藥署藥品許可證 · 健康查詢 health-hub' };
+}
+
+export async function drugInfo(licenseNo) {
+  const lic = String(licenseNo || '').trim();
+  if (!lic) return { error: '請提供藥品許可證字號（license_no），可先用 taiwan_drug_search 取得' };
+  const { ok, body } = await fetchJson(`${HEALTH_BASE}/api/drug-ingredients?lic=${encodeURIComponent(lic)}`);
+  if (!ok || !body) return { error: '查詢失敗（health-hub）', license_no: lic };
+  if (!body.name) return { error: `查無此許可證字號 ${lic}`, license_no: lic };
+  return {
+    license_no: lic,
+    name: body.name,
+    active_ingredients: body.ingredients || [],
+    detail: `${HEALTH_BASE}/drug/${encodeURIComponent(lic)}`,
+    note: '藥品資訊僅供參考，用藥請依醫師、藥師指示',
+    source: '衛福部食藥署藥品許可證 · 健康查詢 health-hub',
+  };
+}
+
 // ── 實價登錄 housetw.com ───────────────────────────────────────
 export async function realpriceSearch(q) {
   const query = String(q || '').trim();

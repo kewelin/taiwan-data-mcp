@@ -5,6 +5,7 @@ import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprot
 import {
   scamCheck, companySearch, companyProfile, personCompanies, companyRisk,
   realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
+  drugSearch, drugInfo,
 } from './sources.mjs';
 
 const TOOLS = [
@@ -134,6 +135,28 @@ const TOOLS = [
     },
     run: (a) => realpriceRoad(a.county, a.district, a.road),
   },
+  {
+    name: 'taiwan_drug_search',
+    description:
+      '搜尋台灣核准的藥品（用中文藥名關鍵字），回傳符合的藥品與其衛福部許可證字號。要看成分請接著用 taiwan_drug_info。資料來源：衛福部食藥署 · health-hub。',
+    inputSchema: {
+      type: 'object',
+      properties: { name: { type: 'string', description: '藥品中文名關鍵字，例如「普拿疼」「斯斯」' } },
+      required: ['name'],
+    },
+    run: (a) => drugSearch(a.name),
+  },
+  {
+    name: 'taiwan_drug_info',
+    description:
+      '用藥品許可證字號查該藥的主要成分。資料來源：衛福部食藥署藥品許可證 · health-hub。用藥請依醫師、藥師指示。',
+    inputSchema: {
+      type: 'object',
+      properties: { license_no: { type: 'string', description: '藥品許可證字號，例如「衛署藥輸字第024600號」（可先用 taiwan_drug_search 取得）' } },
+      required: ['license_no'],
+    },
+    run: (a) => drugInfo(a.license_no),
+  },
 ];
 
 const server = new Server(
@@ -158,4 +181,4 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('taiwan-data-mcp running (stdio) — 10 tools: 防詐 / 公司登記 / 實價登錄');
+console.error('taiwan-data-mcp running (stdio) — 12 tools: 防詐 / 公司登記 / 實價登錄 / 藥品健康');

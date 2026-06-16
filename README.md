@@ -18,6 +18,8 @@
 | `taiwan_realprice_area` | 查某縣市 / 行政區成交行情統計 | housetw.com |
 | `taiwan_realprice_estimate` | 自動估價：單價區間與推估總價 | housetw.com |
 | `taiwan_realprice_road` | 查某路段成交行情與逐年走勢 | housetw.com |
+| `taiwan_drug_search` | 用中文藥名搜尋核准藥品、取許可證字號 | [health-hub](https://health-hub-epx.pages.dev)（衛福部食藥署） |
+| `taiwan_drug_info` | 用許可證字號查藥品主要成分 | health-hub |
 
 跨工具串接是重點：例如「查這家公司 → 看它登記地址那區的房價 → 查它官網是不是詐騙」，一次問答內 AI 自己串起來。
 
@@ -72,6 +74,7 @@ node test/e2e.mjs  # MCP 協定層測試
 - 實價登錄行情 — **[housetw.com](https://housetw.com)**（實價雷達）
 - 公司登記查核 — **[inc.com.tw](https://inc.com.tw)**（台灣公司登記網）
 - 165 防詐查詢 — **[fraud.tw](https://fraud.tw)**（防詐雷達）
+- 藥品／健康查詢 — **[health-hub](https://health-hub-epx.pages.dev)**（衛福部食藥署資料）
 
 三站皆為聚合台灣政府開放資料的免費查詢服務。
 

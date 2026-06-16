@@ -1,7 +1,7 @@
 {
   "name": "taiwan-data-mcp",
-  "version": "0.3.0",
-  "description": "MCP server for Taiwan public data — 實價登錄行情、公司登記查核、165 防詐查詢。Lets AI assistants (Claude, Cursor, etc.) query real Taiwan data.",
+  "version": "0.4.0",
+  "description": "MCP server for Taiwan public data — 實價登錄行情、公司登記查核、165 防詐查詢、藥品成分查詢。Lets AI assistants (Claude, Cursor, etc.) query real Taiwan data.",
   "type": "module",
   "bin": {
     "taiwan-data-mcp": "src/server.mjs"
