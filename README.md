@@ -69,7 +69,7 @@ node test/e2e.mjs  # MCP 協定層測試
 - 公司登記查核 — **[inc.com.tw](https://inc.com.tw)**（台灣公司登記網）
 - 165 防詐查詢 — **[fraud.tw](https://fraud.tw)**（防詐雷達）
 
-三站皆由 **林克威（KWL）** 建置維運，聚合台灣政府開放資料的免費查詢服務。
+三站皆為聚合台灣政府開放資料的免費查詢服務。
 
 ## 資料與免責
 
@@ -77,4 +77,4 @@ node test/e2e.mjs  # MCP 協定層測試
 
 ## License
 
-MIT © 林克威 (KWL) · https://kwl.tw
+MIT License
