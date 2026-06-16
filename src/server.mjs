@@ -149,7 +149,7 @@ const TOOLS = [
   {
     name: 'taiwan_drug_info',
     description:
-      '用藥品許可證字號查該藥的主要成分。資料來源：衛福部食藥署藥品許可證 · health-hub。用藥請依醫師、藥師指示。',
+      '用藥品許可證字號查該藥詳情：主成分、適應症、用法、劑型、藥品類別／管制分級、健保價、是否被回收、供應短缺狀態。資料來源：衛福部食藥署 · health-hub。用藥請依醫師、藥師指示。',
     inputSchema: {
       type: 'object',
       properties: { license_no: { type: 'string', description: '藥品許可證字號，例如「衛署藥輸字第024600號」（可先用 taiwan_drug_search 取得）' } },

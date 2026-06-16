@@ -127,6 +127,11 @@ export async function drugSearch(name) {
 export async function drugInfo(licenseNo) {
   const lic = String(licenseNo || '').trim();
   if (!lic) return { error: '請提供藥品許可證字號（license_no），可先用 taiwan_drug_search 取得' };
+  // 優先用完整端點（含適應症/健保價/回收/短缺）；未部署時自動退回成分端點
+  const full = await fetchJson(`${HEALTH_BASE}/api/drug.json?lic=${encodeURIComponent(lic)}`);
+  if (full.ok && full.body && full.body.name) return full.body;
+  if (full.status === 404 && full.body && full.body.error) return full.body; // 確實查無此藥
+
   const { ok, body } = await fetchJson(`${HEALTH_BASE}/api/drug-ingredients?lic=${encodeURIComponent(lic)}`);
   if (!ok || !body) return { error: '查詢失敗（health-hub）', license_no: lic };
   if (!body.name) return { error: `查無此許可證字號 ${lic}`, license_no: lic };
