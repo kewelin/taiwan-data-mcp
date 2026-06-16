@@ -1,7 +1,7 @@
 // 台灣公開資料來源：薄客戶端，呼叫各站既有 JSON API，資料留在來源站。
 // 每個工具回傳都夾帶 source 與 link（署名 + 導流）。
 
-const UA = 'taiwan-data-mcp/0.1 (+https://github.com/kwlin/taiwan-data-mcp)';
+const UA = 'taiwan-data-mcp (+https://github.com/kewelin/taiwan-data-mcp)';
 
 export async function fetchJson(url, { timeout = 12000 } = {}) {
   const ctrl = new AbortController();
@@ -53,7 +53,7 @@ export async function companySearch(name) {
 export async function companyProfile(id) {
   const tin = String(id || '').replace(/\D/g, '');
   if (tin.length !== 8) return { error: '統一編號必須是 8 位數字' };
-  const { ok, status, body } = await fetchJson(`https://inc.com.tw/api/company/${tin}`);
+  const { ok, status, body } = await fetchJson(`https://inc.com.tw/api/company/${tin}`, { timeout: 20000 });
   if (status === 404) return { error: `查無此統一編號 ${tin}` };
   if (!ok || !body) return { error: '查詢失敗（inc.com.tw）', unified_business_no: tin };
   const { source: _drop, ...rest } = body;
@@ -75,6 +75,36 @@ export async function personCompanies(name) {
   return { query: q, count: people.length, people,
     note: '以姓名比對，可能含同名同姓，僅供參考',
     source: '台灣公司登記網 inc.com.tw' };
+}
+
+export async function companyRisk(id) {
+  const tin = String(id || '').replace(/\D/g, '');
+  if (tin.length !== 8) return { error: '統一編號必須是 8 位數字' };
+  const { ok, status, body } = await fetchJson(`https://inc.com.tw/api/company/${tin}`, { timeout: 20000 });
+  if (status === 404) return { error: `查無此統一編號 ${tin}` };
+  if (!ok || !body) return { error: '查詢失敗（inc.com.tw）', unified_business_no: tin };
+  const f = body.flags || {};
+  const redFlags = [];
+  if (f.government_debarment) redFlags.push('政府採購拒絕往來');
+  if (f.labor_penalties) redFlags.push(`勞動法令裁罰 ${f.labor_penalties} 筆`);
+  if (f.environmental_penalties) redFlags.push(`環保裁罰 ${f.environmental_penalties} 筆`);
+  const level = f.government_debarment ? 'high' : redFlags.length ? 'medium' : 'low';
+  return {
+    unified_business_no: tin,
+    name: body.name,
+    status: body.status,
+    listing: body.listing || null,
+    risk_level: level,
+    red_flags: redFlags,
+    detail: {
+      government_debarment: !!f.government_debarment,
+      labor_penalties: f.labor_penalties || 0,
+      environmental_penalties: f.environmental_penalties || 0,
+    },
+    note: '裁罰以公司名稱比對，可能含同名同稱；僅供參考，以政府原始公告為準',
+    profile_url: `https://inc.com.tw/c/${tin}`,
+    source: '台灣公司登記網 inc.com.tw',
+  };
 }
 
 // ── 實價登錄 housetw.com ───────────────────────────────────────
@@ -135,5 +165,16 @@ export async function realpriceRoad(county, district, road) {
   const { ok, body, status } = await fetchJson(`https://housetw.com/api/road.json?${qp}`);
   if (status === 404 || !body) return { error: '路段端點暫不可用（housetw.com）', road: r };
   if (!ok) return { error: '查詢失敗（housetw.com）', road: r };
+  return body;
+}
+
+export async function realpriceRent(county, district) {
+  const c = String(county || '').trim();
+  if (!c) return { error: '請提供縣市 county（可加行政區 district）' };
+  const qp = new URLSearchParams({ county: c });
+  if (district) qp.set('district', String(district).trim());
+  const { ok, body, status } = await fetchJson(`https://housetw.com/api/rent.json?${qp}`);
+  if (status === 404 || status === 302 || !body) return { error: '租金端點暫不可用（housetw.com，待部署）', county: c };
+  if (!ok) return { error: '查詢失敗（housetw.com）', county: c };
   return body;
 }

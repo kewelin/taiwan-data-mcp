@@ -3,7 +3,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
-  scamCheck, companySearch, companyProfile, personCompanies,
+  scamCheck, companySearch, companyProfile, personCompanies, companyRisk,
   realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
 } from './sources.mjs';
 
@@ -51,6 +51,17 @@ const TOOLS = [
       required: ['name'],
     },
     run: (a) => personCompanies(a.name),
+  },
+  {
+    name: 'taiwan_company_risk',
+    description:
+      '公司風險查核（盡職調查紅旗）：用 8 位統編查該公司有無政府採購拒絕往來、勞動法令裁罰、環保裁罰，回傳風險等級與紅旗清單。資料來源：inc.com.tw（聚合政府公開資料）。',
+    inputSchema: {
+      type: 'object',
+      properties: { unified_business_no: { type: 'string', description: '8 位統一編號，例如 22099131' } },
+      required: ['unified_business_no'],
+    },
+    run: (a) => companyRisk(a.unified_business_no),
   },
   {
     name: 'taiwan_realprice_search',
@@ -147,4 +158,4 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('taiwan-data-mcp running (stdio) — 9 tools: 防詐 / 公司登記 / 實價登錄');
+console.error('taiwan-data-mcp running (stdio) — 10 tools: 防詐 / 公司登記 / 實價登錄');
