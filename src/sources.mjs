@@ -107,6 +107,51 @@ export async function companyRisk(id) {
   };
 }
 
+// ── 農產批發行情 MOA（農業部農產品交易行情）──────────────────────
+function _rocToAd(s) {
+  const m = String(s || '').match(/^(\d{2,3})\.(\d{2})\.(\d{2})$/);
+  return m ? `${Number(m[1]) + 1911}-${m[2]}-${m[3]}` : s || null;
+}
+
+// 常見俗名 → 農業部資料作物名（資料用正式名，民眾用俗名）
+const CROP_ALIAS = { 高麗菜: '甘藍', 蕃茄: '番茄', 西紅柿: '番茄', 小蕃茄: '小番茄', 聖女番茄: '小番茄' };
+
+export async function farmPrice(crop, market) {
+  let c = String(crop || '').trim();
+  if (!c) return { error: '請提供農產品名稱，例如「高麗菜」「香蕉」「青蔥」' };
+  if (CROP_ALIAS[c]) c = CROP_ALIAS[c];
+  const mkt = String(market || '台北一').trim();
+  const { ok, body } = await fetchJson(
+    `https://data.moa.gov.tw/Service/OpenData/FromM/FarmTransData.aspx?Market=${encodeURIComponent(mkt)}`,
+    { timeout: 20000 }
+  );
+  if (!ok || !Array.isArray(body)) return { error: '查詢失敗（農業部農產行情）', crop: c, market: mkt };
+  const matched = body
+    .filter((r) => String(r['作物名稱'] || '').includes(c))
+    .map((r) => ({
+      crop: r['作物名稱'],
+      date: _rocToAd(r['交易日期']),
+      market: r['市場名稱'],
+      avg_price_ntd_kg: r['平均價'],
+      high_ntd_kg: r['上價'],
+      low_ntd_kg: r['下價'],
+      volume_kg: r['交易量'],
+    }));
+  if (!matched.length) {
+    return { crop: c, market: mkt, count: 0,
+      note: `${mkt}市場最新交易日查無「${c}」，可換關鍵字或市場（如 台北一／台北二／台中／三重／高雄）`,
+      source: '農業部農產品批發市場交易行情 data.moa.gov.tw' };
+  }
+  return {
+    crop: c,
+    market: mkt,
+    count: matched.length,
+    items: matched.slice(0, 30),
+    note: '價格單位：元/公斤；交易量：公斤；為該市場最新交易日資料',
+    source: '農業部農產品批發市場交易行情 data.moa.gov.tw',
+  };
+}
+
 // ── 政府標案 PCC（g0v 政府採購開放資料）─────────────────────────
 const PCC_BASE = 'https://pcc-api.openfun.app';
 

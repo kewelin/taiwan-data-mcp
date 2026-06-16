@@ -7,6 +7,7 @@ import {
   realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
   drugSearch, drugInfo,
   tenderByCompany, tenderSearch,
+  farmPrice,
 } from './sources.mjs';
 
 const TOOLS = [
@@ -183,6 +184,20 @@ const TOOLS = [
     },
     run: (a) => tenderSearch(a.keyword, a.page),
   },
+  {
+    name: 'taiwan_farm_price',
+    description:
+      '查台灣農產品批發市場最新交易行情：某蔬果的平均、最高、最低批發價（元/公斤）與交易量。颱風季菜價查詢常用。涵蓋蔬果花卉，不含禽蛋肉品。資料來源：農業部 data.moa.gov.tw。',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        crop: { type: 'string', description: '蔬果名稱，例如「高麗菜」「香蕉」「青蔥」「番茄」' },
+        market: { type: 'string', description: '批發市場（可選，預設「台北一」），例如「台北一」「台北二」「台中」「三重」「高雄」' },
+      },
+      required: ['crop'],
+    },
+    run: (a) => farmPrice(a.crop, a.market),
+  },
 ];
 
 const server = new Server(
@@ -207,4 +222,4 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('taiwan-data-mcp running (stdio) — 14 tools: 防詐 / 公司登記 / 實價登錄 / 藥品健康 / 政府標案');
+console.error('taiwan-data-mcp running (stdio) — 15 tools: 防詐 / 公司登記 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');
