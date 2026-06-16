@@ -12,6 +12,9 @@ export async function fetchJson(url, { timeout = 12000 } = {}) {
     let body = null;
     try { body = JSON.parse(text); } catch { /* non-JSON (e.g. SSR HTML fallback) */ }
     return { ok: r.ok, status: r.status, body, raw: text };
+  } catch (e) {
+    // 網路 / TLS / 逾時錯誤：回結構化失敗，讓工具優雅降級而非拋例外
+    return { ok: false, status: 0, body: null, raw: '', netError: e?.cause?.code || e?.name || String(e) };
   } finally {
     clearTimeout(t);
   }
@@ -58,6 +61,22 @@ export async function companyProfile(id) {
     source: '台灣公司登記網 inc.com.tw' };
 }
 
+export async function personCompanies(name) {
+  const q = String(name || '').trim();
+  if (q.length < 2) return { error: '人名至少 2 個字' };
+  const { ok, body } = await fetchJson(`https://inc.com.tw/api/suggest?q=${encodeURIComponent(q)}`);
+  if (!ok || !Array.isArray(body)) return { error: '查詢失敗（inc.com.tw）', query: q };
+  const people = body
+    .filter((x) => x.t === 'p')
+    .map((x) => ({ person: x.n, company_count: x.c, example_companies: x.eg || [],
+      profile_url: `https://inc.com.tw/p/${encodeURIComponent(x.n)}` }));
+  if (!people.length) return { query: q, count: 0, note: '查無此人擔任負責人／董監事的公司（或人名不完整）', people: [],
+    source: '台灣公司登記網 inc.com.tw' };
+  return { query: q, count: people.length, people,
+    note: '以姓名比對，可能含同名同姓，僅供參考',
+    source: '台灣公司登記網 inc.com.tw' };
+}
+
 // ── 實價登錄 housetw.com ───────────────────────────────────────
 export async function realpriceSearch(q) {
   const query = String(q || '').trim();
@@ -93,5 +112,28 @@ export async function realpriceArea(county, district) {
     return { degraded: true, note: 'area.json 端點尚未上線，改回傳搜尋結果連結', ...fallback };
   }
   if (!ok) return { error: '查詢失敗（housetw.com）', county: c };
+  return body;
+}
+
+export async function realpriceEstimate(county, district, { type, age, ping } = {}) {
+  const c = String(county || '').trim(), d = String(district || '').trim();
+  if (!c || !d) return { error: '請提供縣市 county 與行政區 district' };
+  const qp = new URLSearchParams({ county: c, district: d });
+  if (type) qp.set('type', String(type).trim());
+  if (age != null && age !== '') qp.set('age', String(age));
+  if (ping != null && ping !== '') qp.set('ping', String(ping));
+  const { ok, body, status } = await fetchJson(`https://housetw.com/api/estimate.json?${qp}`);
+  if (status === 404 || !body) return { error: '估價端點暫不可用（housetw.com）', county: c, district: d };
+  if (!ok) return { error: '查詢失敗（housetw.com）', county: c, district: d };
+  return body;
+}
+
+export async function realpriceRoad(county, district, road) {
+  const c = String(county || '').trim(), d = String(district || '').trim(), r = String(road || '').trim();
+  if (!c || !d || !r) return { error: '請提供縣市 county、行政區 district、路段 road' };
+  const qp = new URLSearchParams({ county: c, district: d, road: r });
+  const { ok, body, status } = await fetchJson(`https://housetw.com/api/road.json?${qp}`);
+  if (status === 404 || !body) return { error: '路段端點暫不可用（housetw.com）', road: r };
+  if (!ok) return { error: '查詢失敗（housetw.com）', road: r };
   return body;
 }

@@ -10,10 +10,13 @@
 |------|------|----------|
 | `taiwan_scam_check` | 查網址 / 網域是否被 165 通報詐騙 | [fraud.tw](https://fraud.tw)（內政部警政署 165） |
 | `taiwan_company_search` | 用公司名搜尋，拿統一編號與負責人 | [inc.com.tw](https://inc.com.tw)（經濟部公司登記） |
-| `taiwan_company_profile` | 用統編查公司完整登記資料 | inc.com.tw |
+| `taiwan_company_profile` | 用統編查公司完整登記資料（含董監事） | inc.com.tw |
+| `taiwan_person_companies` | 用人名查他擔任負責人／董監事的公司 | inc.com.tw |
 | `taiwan_realprice_search` | 搜尋實價登錄的地址 / 路段 / 行政區 | [housetw.com](https://housetw.com)（內政部實價登錄） |
 | `taiwan_realprice_locate` | 用經緯度反查行政區與行情頁 | housetw.com |
 | `taiwan_realprice_area` | 查某縣市 / 行政區成交行情統計 | housetw.com |
+| `taiwan_realprice_estimate` | 自動估價：單價區間與推估總價 | housetw.com |
+| `taiwan_realprice_road` | 查某路段成交行情與逐年走勢 | housetw.com |
 
 跨工具串接是重點：例如「查這家公司 → 看它登記地址那區的房價 → 查它官網是不是詐騙」，一次問答內 AI 自己串起來。
 

@@ -3,8 +3,8 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
-  scamCheck, companySearch, companyProfile,
-  realpriceSearch, realpriceLocate, realpriceArea,
+  scamCheck, companySearch, companyProfile, personCompanies,
+  realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
 } from './sources.mjs';
 
 const TOOLS = [
@@ -40,6 +40,17 @@ const TOOLS = [
       required: ['unified_business_no'],
     },
     run: (a) => companyProfile(a.unified_business_no),
+  },
+  {
+    name: 'taiwan_person_companies',
+    description:
+      '用人名查他擔任「負責人／董監事」的台灣公司，回傳關聯公司數與範例公司（公司關係／查老闆人脈用）。以姓名比對，可能含同名同姓。資料來源：inc.com.tw。',
+    inputSchema: {
+      type: 'object',
+      properties: { name: { type: 'string', description: '人名，例如「郭台銘」' } },
+      required: ['name'],
+    },
+    run: (a) => personCompanies(a.name),
   },
   {
     name: 'taiwan_realprice_search',
@@ -80,6 +91,38 @@ const TOOLS = [
     },
     run: (a) => realpriceArea(a.county, a.district),
   },
+  {
+    name: 'taiwan_realprice_estimate',
+    description:
+      '自動估價：輸入縣市+行政區（可加建物型態/屋齡/坪數），回傳可比案例的單價區間（萬/坪）與推估總價。資料來源：housetw.com（內政部實價登錄）。',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        county: { type: 'string', description: '縣市，例如「臺北市」（用「臺」非「台」）' },
+        district: { type: 'string', description: '行政區，例如「信義區」' },
+        building_type: { type: 'string', description: '建物型態（可選），例如「住宅大樓」「公寓」「華廈」' },
+        house_age: { type: 'number', description: '屋齡（可選，年）' },
+        area_ping: { type: 'number', description: '坪數（可選），給了才會推估總價' },
+      },
+      required: ['county', 'district'],
+    },
+    run: (a) => realpriceEstimate(a.county, a.district, { type: a.building_type, age: a.house_age, ping: a.area_ping }),
+  },
+  {
+    name: 'taiwan_realprice_road',
+    description:
+      '查某路段的不動產成交行情：單價統計（萬/坪）、成交筆數、屋齡與逐年價格走勢。資料來源：housetw.com（內政部實價登錄）。',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        county: { type: 'string', description: '縣市，例如「臺北市」' },
+        district: { type: 'string', description: '行政區，例如「信義區」' },
+        road: { type: 'string', description: '路段，例如「松高路」「忠孝東路四段」' },
+      },
+      required: ['county', 'district', 'road'],
+    },
+    run: (a) => realpriceRoad(a.county, a.district, a.road),
+  },
 ];
 
 const server = new Server(
@@ -104,4 +147,4 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('taiwan-data-mcp running (stdio) — 6 tools: 防詐 / 公司登記 / 實價登錄');
+console.error('taiwan-data-mcp running (stdio) — 9 tools: 防詐 / 公司登記 / 實價登錄');
