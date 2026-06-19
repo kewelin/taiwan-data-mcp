@@ -4,6 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
   scamCheck, companySearch, companyProfile, personCompanies, companyRisk,
+  companyRelations, companyNameCheck, companyVerify,
   realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
   drugSearch, drugInfo,
   tenderByCompany, tenderSearch,
@@ -67,6 +68,39 @@ const TOOLS = [
       },
     },
     run: (a) => companyRisk(a.unified_business_no || a.name),
+  },
+  {
+    name: 'taiwan_company_relations',
+    description:
+      '公司關係圖譜（盡職調查／天眼查式）：用 8 位統編查該公司的法人股東（誰持有它）、轉投資子公司（它持有誰）、推估最終母公司、整個集團規模，以及共同董監事連到的其他公司（人脈）。查母子公司、集團版圖、關係人用。資料來源：inc.com.tw。',
+    inputSchema: {
+      type: 'object',
+      properties: { unified_business_no: { type: 'string', description: '8 位統一編號，例如 04541302（鴻海）' } },
+      required: ['unified_business_no'],
+    },
+    run: (a) => companyRelations(a.unified_business_no),
+  },
+  {
+    name: 'taiwan_company_name_check',
+    description:
+      '公司名稱預查／撞名查重：給一個想取的公司名稱，回傳是否已有相同或近似的既有公司（含統編）。創業命名或盡調辨識用。回傳 core（特取名稱）、exact（完全相同）、similar（近似）。資料來源：inc.com.tw。',
+    inputSchema: {
+      type: 'object',
+      properties: { name: { type: 'string', description: '想查的公司名稱，例如「台積電」「方圓科技」' } },
+      required: ['name'],
+    },
+    run: (a) => companyNameCheck(a.name),
+  },
+  {
+    name: 'taiwan_company_verify',
+    description:
+      '用 8 位統編向經濟部商工登記公示 OpenAPI 取「即時」官方登記狀態（名稱／狀態／資本／實收／負責人／所在地／登記機關）。比一般資料庫更即時，適合確認某公司目前是否仍存續、是否已解散撤銷。資料來源：經濟部商工登記公示資料。',
+    inputSchema: {
+      type: 'object',
+      properties: { unified_business_no: { type: 'string', description: '8 位統一編號，例如 22099131' } },
+      required: ['unified_business_no'],
+    },
+    run: (a) => companyVerify(a.unified_business_no),
   },
   {
     name: 'taiwan_realprice_search',
@@ -203,7 +237,7 @@ const TOOLS = [
 ];
 
 const server = new Server(
-  { name: 'taiwan-data-mcp', version: '0.7.0' },
+  { name: 'taiwan-data-mcp', version: '0.8.0' },
   { capabilities: { tools: {} } }
 );
 
@@ -224,4 +258,4 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('taiwan-data-mcp running (stdio) — 15 tools: 防詐 / 公司登記 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');
+console.error('taiwan-data-mcp running (stdio) — 18 tools: 防詐 / 公司登記·關係·盡調 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');

@@ -13,6 +13,9 @@
 | `taiwan_company_profile` | 用統編查公司完整登記資料（含董監事） | inc.com.tw |
 | `taiwan_person_companies` | 用人名查他擔任負責人／董監事的公司 | inc.com.tw |
 | `taiwan_company_risk` | 公司風險查核（統編或公司名）：解散／拒絕往來／國際制裁／金管會／司法／勞動／環保紅旗＋上市櫃即時股價 | inc.com.tw |
+| `taiwan_company_relations` | 公司關係圖譜：法人股東／轉投資子公司／最終母公司／集團規模／共同董監事人脈 | inc.com.tw |
+| `taiwan_company_name_check` | 公司名稱預查／撞名查重（創業命名用） | inc.com.tw |
+| `taiwan_company_verify` | 經濟部商工登記 OpenAPI 即時官方登記狀態 | inc.com.tw |
 | `taiwan_realprice_search` | 搜尋實價登錄的地址 / 路段 / 行政區 | [housetw.com](https://housetw.com)（內政部實價登錄） |
 | `taiwan_realprice_locate` | 用經緯度反查行政區與行情頁 | housetw.com |
 | `taiwan_realprice_area` | 查某縣市 / 行政區成交行情統計 | housetw.com |

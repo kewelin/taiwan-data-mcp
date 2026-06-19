@@ -126,6 +126,37 @@ export async function companyRisk(idOrName) {
   };
 }
 
+// 公司關係圖譜（天眼查式）：法人股東／轉投資子公司／最終母公司／集團規模／共同董監事人脈。
+export async function companyRelations(id) {
+  const tin = String(id || '').replace(/\D/g, '');
+  if (tin.length !== 8) return { error: '統一編號必須是 8 位數字' };
+  const { ok, status, body } = await fetchJson(`https://inc.com.tw/api/relations/${tin}`, { timeout: 20000 });
+  if (status === 404) return { error: `查無此統一編號 ${tin}` };
+  if (!ok || !body) return { error: '查詢失敗（inc.com.tw）', unified_business_no: tin };
+  return body; // 已自帶 source / profile_url / note
+}
+
+// 公司名稱預查／撞名查重（創業命名、盡調辨識用）。
+export async function companyNameCheck(name) {
+  const q = String(name || '').trim();
+  if (q.length < 2) return { error: '公司名稱至少 2 個字' };
+  const { ok, body } = await fetchJson(`https://inc.com.tw/api/namecheck?name=${encodeURIComponent(q)}`);
+  if (!ok || !body) return { error: '查詢失敗（inc.com.tw）', query: q };
+  return { query: q, ...body, note: '名稱比對僅供命名參考；正式設立以經濟部名稱預查核准為準', source: '台灣公司登記網 inc.com.tw' };
+}
+
+// 官方即時查證：經濟部商工登記公示 OpenAPI 的「目前」登記狀態（比快取更即時）。
+export async function companyVerify(id) {
+  const tin = String(id || '').replace(/\D/g, '');
+  if (tin.length !== 8) return { error: '統一編號必須是 8 位數字' };
+  const { ok, body } = await fetchJson(`https://inc.com.tw/api/verify?id=${tin}`, { timeout: 15000 });
+  if (!ok || !body) return { error: '查詢失敗（inc.com.tw）', unified_business_no: tin };
+  if (!body.ok) return { unified_business_no: tin, verified: false, note: body.note || '官方查證暫時無回應', source: '經濟部商工登記公示資料' };
+  return { unified_business_no: tin, verified: true, name: body.name, status: body.status, capital: body.capital,
+    paid_in_capital: body.paid, representative: body.responsible, location: body.location, register_organization: body.regOrg,
+    source: body.src || '經濟部商工登記公示資料' };
+}
+
 // ── 農產批發行情 MOA（農業部農產品交易行情）──────────────────────
 function _rocToAd(s) {
   const m = String(s || '').match(/^(\d{2,3})\.(\d{2})\.(\d{2})$/);
