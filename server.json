@@ -1,0 +1,19 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.kewelin/taiwan-data-mcp",
+  "description": "Query real Taiwan public data from AI — 實價登錄、公司登記查核、公司關係圖譜、165 防詐、藥品、政府標案、農產行情。18 tools across 6 government open-data sources.",
+  "version": "0.8.0",
+  "repository": {
+    "url": "https://github.com/kewelin/taiwan-data-mcp",
+    "source": "github"
+  },
+  "websiteUrl": "https://inc.com.tw",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "taiwan-data-mcp",
+      "version": "0.8.0",
+      "transport": { "type": "stdio" }
+    }
+  ]
+}
