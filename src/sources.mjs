@@ -95,12 +95,13 @@ export async function companyRisk(idOrName) {
   if (f.reject) redFlags.push('政府採購拒絕往來');
   if (f.sanction) redFlags.push(`命中國際制裁名單 ${f.sanction} 筆（OFAC/UN 等）`);
   if (f.fsc) redFlags.push(`金管會重大裁罰 ${f.fsc} 件`);
-  if (f.judicial) redFlags.push(`司法案件 ${f.judicial} 筆`);
+  if (f.judicial) redFlags.push(`司法案件 ${f.judicial} 筆（以名稱比對，含一般民事/被列名，未必為違法，僅供參考）`);
   if (f.labor) redFlags.push(`勞動法令裁罰 ${f.labor} 筆`);
   if (f.env) redFlags.push(`環保裁罰 ${f.env} 筆`);
-  // 重大紅旗（解散/拒往/制裁/司法/金管）→ high；僅勞動或環保 → medium；皆無 → low
-  const major = f.dissolved || f.reject || f.sanction || f.judicial || f.fsc;
-  const level = major ? 'high' : (f.labor || f.env) ? 'medium' : 'low';
+  // 重大紅旗（解散／拒絕往來／國際制裁／金管會重大裁罰）→ high。
+  // 司法案件以名稱比對且噪訊高（大公司常被列為當事人），與勞動／環保同列 medium，不單獨拉到 high。
+  const major = f.dissolved || f.reject || f.sanction || f.fsc;
+  const level = major ? 'high' : (f.judicial || f.labor || f.env) ? 'medium' : 'low';
   return {
     unified_business_no: body.id,
     name: body.name,
@@ -155,6 +156,15 @@ export async function companyVerify(id) {
   return { unified_business_no: tin, verified: true, name: body.name, status: body.status, capital: body.capital,
     paid_in_capital: body.paid, representative: body.responsible, location: body.location, register_organization: body.regOrg,
     source: body.src || '經濟部商工登記公示資料' };
+}
+
+// 統一編號檢查碼驗證（純演算法，資料清理／表單檢核用）。
+export async function validateTaxId(id) {
+  const tin = String(id || '').replace(/\D/g, '');
+  if (tin.length !== 8) return { input: String(id || ''), valid: false, reason: '統一編號必須是 8 位數字' };
+  const { ok, body } = await fetchJson(`https://inc.com.tw/api/taxid?id=${tin}`, { timeout: 10000 });
+  if (!ok || !body) return { input: tin, valid: false, reason: '查詢失敗（inc.com.tw）' };
+  return body;
 }
 
 // ── 農產批發行情 MOA（農業部農產品交易行情）──────────────────────

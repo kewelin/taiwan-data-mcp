@@ -4,7 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
   scamCheck, companySearch, companyProfile, personCompanies, companyRisk,
-  companyRelations, companyNameCheck, companyVerify,
+  companyRelations, companyNameCheck, companyVerify, validateTaxId,
   realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
   drugSearch, drugInfo,
   tenderByCompany, tenderSearch,
@@ -101,6 +101,17 @@ const TOOLS = [
       required: ['unified_business_no'],
     },
     run: (a) => companyVerify(a.unified_business_no),
+  },
+  {
+    name: 'taiwan_validate_tax_id',
+    description:
+      '驗證台灣統一編號（8 碼）檢查碼是否正確（財政部統編邏輯，純演算法、不查資料庫）。資料清理、表單驗證、判斷一組號碼是否為有效統編格式用。回傳 valid 與說明。資料來源：inc.com.tw。',
+    inputSchema: {
+      type: 'object',
+      properties: { unified_business_no: { type: 'string', description: '8 位統一編號，例如 22099131' } },
+      required: ['unified_business_no'],
+    },
+    run: (a) => validateTaxId(a.unified_business_no),
   },
   {
     name: 'taiwan_realprice_search',
@@ -237,7 +248,7 @@ const TOOLS = [
 ];
 
 const server = new Server(
-  { name: 'taiwan-data-mcp', version: '0.8.0' },
+  { name: 'taiwan-data-mcp', version: '0.9.0' },
   { capabilities: { tools: {} } }
 );
 
@@ -258,4 +269,4 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('taiwan-data-mcp running (stdio) — 18 tools: 防詐 / 公司登記·關係·盡調 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');
+console.error('taiwan-data-mcp running (stdio) — 19 tools: 防詐 / 公司登記·關係·盡調 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');
