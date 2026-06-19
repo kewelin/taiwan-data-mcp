@@ -77,32 +77,51 @@ export async function personCompanies(name) {
     source: '台灣公司登記網 inc.com.tw' };
 }
 
-export async function companyRisk(id) {
-  const tin = String(id || '').replace(/\D/g, '');
-  if (tin.length !== 8) return { error: '統一編號必須是 8 位數字' };
-  const { ok, status, body } = await fetchJson(`https://inc.com.tw/api/company/${tin}`, { timeout: 20000 });
-  if (status === 404) return { error: `查無此統一編號 ${tin}` };
-  if (!ok || !body) return { error: '查詢失敗（inc.com.tw）', unified_business_no: tin };
+// 風險查核：用統編或公司名（簡稱會自動解析成正主，如「台積電」→台積電本尊）。
+// 走 inc.com.tw/api/card：比 /api/company flags 更完整（含解散/金管裁罰/司法/國際制裁），上市櫃並附即時股價。
+export async function companyRisk(idOrName) {
+  const raw = String(idOrName || '').trim();
+  if (!raw) return { error: '請提供統一編號或公司名稱' };
+  const tin = raw.replace(/\D/g, '');
+  const url = /^\d{8}$/.test(tin)
+    ? `https://inc.com.tw/api/card/${tin}`
+    : `https://inc.com.tw/api/card?name=${encodeURIComponent(raw)}`;
+  const { ok, status, body } = await fetchJson(url, { timeout: 20000 });
+  if (status === 404) return { error: `查無公司：${raw}` };
+  if (!ok || !body || body.error) return { error: '查詢失敗（inc.com.tw）', query: raw };
   const f = body.flags || {};
   const redFlags = [];
-  if (f.government_debarment) redFlags.push('政府採購拒絕往來');
-  if (f.labor_penalties) redFlags.push(`勞動法令裁罰 ${f.labor_penalties} 筆`);
-  if (f.environmental_penalties) redFlags.push(`環保裁罰 ${f.environmental_penalties} 筆`);
-  const level = f.government_debarment ? 'high' : redFlags.length ? 'medium' : 'low';
+  if (f.dissolved) redFlags.push(`登記狀態：${body.status}`);
+  if (f.reject) redFlags.push('政府採購拒絕往來');
+  if (f.sanction) redFlags.push(`命中國際制裁名單 ${f.sanction} 筆（OFAC/UN 等）`);
+  if (f.fsc) redFlags.push(`金管會重大裁罰 ${f.fsc} 件`);
+  if (f.judicial) redFlags.push(`司法案件 ${f.judicial} 筆`);
+  if (f.labor) redFlags.push(`勞動法令裁罰 ${f.labor} 筆`);
+  if (f.env) redFlags.push(`環保裁罰 ${f.env} 筆`);
+  // 重大紅旗（解散/拒往/制裁/司法/金管）→ high；僅勞動或環保 → medium；皆無 → low
+  const major = f.dissolved || f.reject || f.sanction || f.judicial || f.fsc;
+  const level = major ? 'high' : (f.labor || f.env) ? 'medium' : 'low';
   return {
-    unified_business_no: tin,
+    unified_business_no: body.id,
     name: body.name,
+    representative: body.rep || null,
     status: body.status,
-    listing: body.listing || null,
+    capital: body.capital ?? null,
+    listing: body.listed || null,
+    stock_price: body.price || null,
     risk_level: level,
     red_flags: redFlags,
     detail: {
-      government_debarment: !!f.government_debarment,
-      labor_penalties: f.labor_penalties || 0,
-      environmental_penalties: f.environmental_penalties || 0,
+      dissolved: !!f.dissolved,
+      government_debarment: f.reject || 0,
+      international_sanction: f.sanction || 0,
+      fsc_major_penalty: f.fsc || 0,
+      judicial_cases: f.judicial || 0,
+      labor_penalties: f.labor || 0,
+      environmental_penalties: f.env || 0,
     },
-    note: '裁罰以公司名稱比對，可能含同名同稱；僅供參考，以政府原始公告為準',
-    profile_url: `https://inc.com.tw/c/${tin}`,
+    note: '裁罰／名單以公司名稱比對，可能含同名同稱；僅供參考，以政府原始公告為準',
+    profile_url: body.url || `https://inc.com.tw/c/${body.id}`,
     source: '台灣公司登記網 inc.com.tw',
   };
 }

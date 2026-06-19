@@ -30,7 +30,19 @@ const call2 = await client.callTool({
 });
 console.log(`tools/call taiwan_scam_check(google.com) → risk = ${JSON.parse(call2.content[0].text).risk}`);
 
+const call3 = await client.callTool({
+  name: 'taiwan_company_risk',
+  arguments: { name: '台積電' },
+});
+const risk = JSON.parse(call3.content[0].text);
+console.log(`tools/call taiwan_company_risk(name=台積電) → ${risk.unified_business_no} ${risk.name}, level = ${risk.risk_level}`);
+
 await client.close();
-const okCount = tools.length === 6 && obj.name?.includes('台灣積體');
-console.log(`\n${okCount ? '✅ MCP 協定層 OK' : '❌ 異常'}`);
-process.exit(okCount ? 0 : 1);
+const names = new Set(tools.map((t) => t.name));
+const ok =
+  tools.length === 15 &&
+  ['taiwan_company_profile', 'taiwan_company_risk', 'taiwan_scam_check', 'taiwan_farm_price'].every((n) => names.has(n)) &&
+  obj.name?.includes('台灣積體') &&
+  risk.unified_business_no === '22099131';
+console.log(`\n${ok ? '✅ MCP 協定層 OK' : '❌ 異常'}`);
+process.exit(ok ? 0 : 1);

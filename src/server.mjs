@@ -58,13 +58,15 @@ const TOOLS = [
   {
     name: 'taiwan_company_risk',
     description:
-      '公司風險查核（盡職調查紅旗）：用 8 位統編查該公司有無政府採購拒絕往來、勞動法令裁罰、環保裁罰，回傳風險等級與紅旗清單。資料來源：inc.com.tw（聚合政府公開資料）。',
+      '公司風險查核（盡職調查紅旗）：用 8 位統編或公司名稱（簡稱如「台積電」自動解析成正主）查該公司有無解散、政府採購拒絕往來、國際制裁名單（OFAC/UN）、金管會重大裁罰、司法案件、勞動法令裁罰、環保裁罰，回傳風險等級、紅旗清單與負責人，上市櫃並附即時股價。資料來源：inc.com.tw（聚合政府公開資料）。',
     inputSchema: {
       type: 'object',
-      properties: { unified_business_no: { type: 'string', description: '8 位統一編號，例如 22099131' } },
-      required: ['unified_business_no'],
+      properties: {
+        unified_business_no: { type: 'string', description: '8 位統一編號（與 name 二擇一），例如 22099131' },
+        name: { type: 'string', description: '公司名稱或簡稱（與統編二擇一），例如「台積電」「鴻海」' },
+      },
     },
-    run: (a) => companyRisk(a.unified_business_no),
+    run: (a) => companyRisk(a.unified_business_no || a.name),
   },
   {
     name: 'taiwan_realprice_search',
@@ -201,7 +203,7 @@ const TOOLS = [
 ];
 
 const server = new Server(
-  { name: 'taiwan-data-mcp', version: '0.1.0' },
+  { name: 'taiwan-data-mcp', version: '0.7.0' },
   { capabilities: { tools: {} } }
 );
 
