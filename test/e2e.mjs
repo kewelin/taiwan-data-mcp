@@ -40,7 +40,7 @@ console.log(`tools/call taiwan_company_risk(name=台積電) → ${risk.unified_b
 await client.close();
 const names = new Set(tools.map((t) => t.name));
 const ok =
-  tools.length === 19 &&
+  tools.length === 20 &&
   ['taiwan_company_profile', 'taiwan_company_risk', 'taiwan_scam_check', 'taiwan_farm_price'].every((n) => names.has(n)) &&
   obj.name?.includes('台灣積體') &&
   risk.unified_business_no === '22099131';

@@ -4,7 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
   scamCheck, companySearch, companyProfile, personCompanies, companyRisk,
-  companyRelations, companyNameCheck, companyVerify, validateTaxId,
+  companyRelations, companyNameCheck, companyVerify, validateTaxId, findConnection,
   realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
   drugSearch, drugInfo,
   tenderByCompany, tenderSearch,
@@ -112,6 +112,20 @@ const TOOLS = [
       required: ['unified_business_no'],
     },
     run: (a) => validateTaxId(a.unified_business_no),
+  },
+  {
+    name: 'taiwan_find_connection',
+    description:
+      '查兩家公司／兩個人之間的最短關係鏈（天眼查式盡職調查）：透過共同負責人／董監事一層層串接，回傳中間的人與公司節點與相隔層數。用於「這兩家公司／這兩個人有沒有關係、怎麼牽上線」。a、b 可填公司名、8 位統編或人名。資料來源：inc.com.tw。',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        a: { type: 'string', description: '起點：公司名／統編／人名，例如「鴻海精密工業」' },
+        b: { type: 'string', description: '終點：公司名／統編／人名，例如「三創數位」' },
+      },
+      required: ['a', 'b'],
+    },
+    run: (a) => findConnection(a.a, a.b),
   },
   {
     name: 'taiwan_realprice_search',
@@ -248,7 +262,7 @@ const TOOLS = [
 ];
 
 const server = new Server(
-  { name: 'taiwan-data-mcp', version: '0.9.0' },
+  { name: 'taiwan-data-mcp', version: '0.10.0' },
   { capabilities: { tools: {} } }
 );
 
@@ -269,4 +283,4 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('taiwan-data-mcp running (stdio) — 19 tools: 防詐 / 公司登記·關係·盡調 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');
+console.error('taiwan-data-mcp running (stdio) — 20 tools: 防詐 / 公司登記·關係·盡調 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');

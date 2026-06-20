@@ -167,6 +167,15 @@ export async function validateTaxId(id) {
   return body;
 }
 
+// 關係路徑：兩家公司／兩人之間透過共同負責人／董監事串接的最短關係鏈（天眼查式盡調）。
+export async function findConnection(a, b) {
+  const qa = String(a || '').trim(), qb = String(b || '').trim();
+  if (!qa || !qb) return { error: '請提供 a 與 b（公司名／統編／人名）' };
+  const { ok, body } = await fetchJson(`https://inc.com.tw/api/path?a=${encodeURIComponent(qa)}&b=${encodeURIComponent(qb)}`, { timeout: 25000 });
+  if (!ok || !body) return { error: '查詢失敗（inc.com.tw）', a: qa, b: qb };
+  return body; // 已自帶 from/to/path/note/source
+}
+
 // ── 農產批發行情 MOA（農業部農產品交易行情）──────────────────────
 function _rocToAd(s) {
   const m = String(s || '').match(/^(\d{2,3})\.(\d{2})\.(\d{2})$/);
