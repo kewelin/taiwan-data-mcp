@@ -4,7 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
   scamCheck, companySearch, companyProfile, personCompanies, companyRisk,
-  companyRelations, companyNameCheck, companyVerify, validateTaxId, findConnection, bulkDueDiligence, compareCompanies,
+  companyRelations, companyNameCheck, companyVerify, validateTaxId, findConnection, bulkDueDiligence, compareCompanies, companyRankings,
   realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
   drugSearch, drugInfo,
   tenderByCompany, tenderSearch,
@@ -150,6 +150,21 @@ const TOOLS = [
     run: (a) => compareCompanies(a.ids),
   },
   {
+    name: 'taiwan_company_rankings',
+    description:
+      '台灣公司排行：依登記資本額（預設）或成立新舊，列出最大／最新／最老的公司，可選行業關鍵字（子字串比對，如「半導體」「銀行」「餐飲」）與縣市（如「臺北市」）篩選。回答「某產業／某縣市資本額最大的公司是哪些」用。資料來源：inc.com.tw。',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        by: { type: 'string', enum: ['capital', 'newest', 'oldest'], description: 'capital 資本額最大（預設）／newest 最新成立／oldest 最老字號' },
+        industry: { type: 'string', description: '行業關鍵字（可選，子字串），例如「半導體」「銀行」' },
+        county: { type: 'string', description: '縣市（可選），例如「臺北市」（用「臺」非「台」）' },
+        limit: { type: 'number', description: '回傳幾筆（1-50，預設 20）' },
+      },
+    },
+    run: (a) => companyRankings({ by: a.by, industry: a.industry, county: a.county, limit: a.limit }),
+  },
+  {
     name: 'taiwan_realprice_search',
     description:
       '搜尋台灣不動產實價登錄的地址 / 路段 / 行政區，回傳符合項目與成交筆數、連結。用來定位某地址或某區，再看其行情。資料來源：housetw.com（內政部實價登錄）。',
@@ -284,7 +299,7 @@ const TOOLS = [
 ];
 
 const server = new Server(
-  { name: 'taiwan-data-mcp', version: '0.11.0' },
+  { name: 'taiwan-data-mcp', version: '0.12.0' },
   { capabilities: { tools: {} } }
 );
 
@@ -305,4 +320,4 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('taiwan-data-mcp running (stdio) — 22 tools: 防詐 / 公司登記·關係·盡調 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');
+console.error('taiwan-data-mcp running (stdio) — 23 tools: 防詐 / 公司登記·關係·盡調 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');

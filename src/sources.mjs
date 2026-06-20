@@ -194,6 +194,18 @@ export async function compareCompanies(ids) {
   return { ...body, source: '台灣公司登記網 inc.com.tw' };
 }
 
+// 公司排行：依資本額／成立新舊，可選行業關鍵字＋縣市。
+export async function companyRankings({ by, industry, county, limit } = {}) {
+  const qp = new URLSearchParams();
+  if (by) qp.set('by', by);
+  if (industry) qp.set('industry', industry);
+  if (county) qp.set('county', county);
+  if (limit != null && limit !== '') qp.set('limit', String(limit));
+  const { ok, body } = await fetchJson(`https://inc.com.tw/api/rankings?${qp.toString()}`, { timeout: 20000 });
+  if (!ok || !body) return { error: '查詢失敗（inc.com.tw）' };
+  return body;
+}
+
 // ── 農產批發行情 MOA（農業部農產品交易行情）──────────────────────
 function _rocToAd(s) {
   const m = String(s || '').match(/^(\d{2,3})\.(\d{2})\.(\d{2})$/);
