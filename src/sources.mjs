@@ -176,6 +176,24 @@ export async function findConnection(a, b) {
   return body; // 已自帶 from/to/path/note/source
 }
 
+// 批次盡職調查：多個公司一次回風險卡（最多 50）。徵信／法遵／供應商清查用。
+export async function bulkDueDiligence(ids) {
+  const list = (Array.isArray(ids) ? ids : String(ids || '').split(/[\s,，、;]+/)).map((s) => String(s || '').trim()).filter(Boolean);
+  if (!list.length) return { error: '請提供 ids（公司統編或名稱陣列）' };
+  const { ok, body } = await fetchJson(`https://inc.com.tw/api/bulk?ids=${encodeURIComponent(list.slice(0, 50).join(','))}`, { timeout: 30000 });
+  if (!ok || !body) return { error: '查詢失敗（inc.com.tw）' };
+  return { ...body, source: '台灣公司登記網 inc.com.tw' };
+}
+
+// 並排比較 2–5 家公司：穩定度／標案／裁罰。
+export async function compareCompanies(ids) {
+  const list = (Array.isArray(ids) ? ids : String(ids || '').split(/[\s,，、;]+/)).map((s) => String(s || '').trim()).filter(Boolean);
+  if (list.length < 1) return { error: '請提供 ids（2–5 個公司統編或名稱）' };
+  const { ok, body } = await fetchJson(`https://inc.com.tw/api/compare?ids=${encodeURIComponent(list.slice(0, 5).join(','))}`, { timeout: 30000 });
+  if (!ok || !body) return { error: '查詢失敗（inc.com.tw）' };
+  return { ...body, source: '台灣公司登記網 inc.com.tw' };
+}
+
 // ── 農產批發行情 MOA（農業部農產品交易行情）──────────────────────
 function _rocToAd(s) {
   const m = String(s || '').match(/^(\d{2,3})\.(\d{2})\.(\d{2})$/);

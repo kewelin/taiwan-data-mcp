@@ -4,7 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
   scamCheck, companySearch, companyProfile, personCompanies, companyRisk,
-  companyRelations, companyNameCheck, companyVerify, validateTaxId, findConnection,
+  companyRelations, companyNameCheck, companyVerify, validateTaxId, findConnection, bulkDueDiligence, compareCompanies,
   realpriceSearch, realpriceLocate, realpriceArea, realpriceEstimate, realpriceRoad,
   drugSearch, drugInfo,
   tenderByCompany, tenderSearch,
@@ -126,6 +126,28 @@ const TOOLS = [
       required: ['a', 'b'],
     },
     run: (a) => findConnection(a.a, a.b),
+  },
+  {
+    name: 'taiwan_bulk_due_diligence',
+    description:
+      '批次盡職調查：一次傳多個台灣公司（統編或公司名，最多 50 個），各回一張風險卡（登記狀態／資本／負責人／上市櫃股價／拒往／金管／勞動／環境／司法／國際制裁旗標）。徵信、法遵、供應商清單批次查核用。資料來源：inc.com.tw。',
+    inputSchema: {
+      type: 'object',
+      properties: { ids: { type: 'array', items: { type: 'string' }, description: '公司統編或名稱陣列，最多 50 個' } },
+      required: ['ids'],
+    },
+    run: (a) => bulkDueDiligence(a.ids),
+  },
+  {
+    name: 'taiwan_compare_companies',
+    description:
+      '並排比較 2–5 家台灣公司：回傳各家的負責人、資本額、成立年數、登記狀態、上市櫃、企業穩定度分數、政府標案得標數、拒絕往來／勞動／金管裁罰筆數，方便挑供應商或做對手分析。資料來源：inc.com.tw。',
+    inputSchema: {
+      type: 'object',
+      properties: { ids: { type: 'array', items: { type: 'string' }, description: '2–5 個公司統編或名稱' } },
+      required: ['ids'],
+    },
+    run: (a) => compareCompanies(a.ids),
   },
   {
     name: 'taiwan_realprice_search',
@@ -262,7 +284,7 @@ const TOOLS = [
 ];
 
 const server = new Server(
-  { name: 'taiwan-data-mcp', version: '0.10.0' },
+  { name: 'taiwan-data-mcp', version: '0.11.0' },
   { capabilities: { tools: {} } }
 );
 
@@ -283,4 +305,4 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error('taiwan-data-mcp running (stdio) — 20 tools: 防詐 / 公司登記·關係·盡調 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');
+console.error('taiwan-data-mcp running (stdio) — 22 tools: 防詐 / 公司登記·關係·盡調 / 實價登錄 / 藥品健康 / 政府標案 / 農產行情');
