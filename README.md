@@ -1,3 +1,7 @@
+**[中文](#中文) | [English](#english)**
+
+## 中文
+
 # taiwan-data-mcp
 
 讓 AI 助理（Claude、Cursor、任何支援 MCP 的工具）直接查 **台灣公開資料** 的 MCP server。
@@ -89,6 +93,104 @@ node test/e2e.mjs  # MCP 協定層測試
 ## 資料與免責
 
 資料即時取自上述各站的公開 API，內容以政府開放資料為準，僅供參考，不構成投資、法律或交易建議。詐騙查詢結果為「是否被通報」，未被通報不代表絕對安全。
+
+## License
+
+MIT License
+
+## English
+
+# taiwan-data-mcp
+
+An MCP server that lets AI assistants (Claude, Cursor, any MCP-capable tool) directly query **Taiwan public data**.
+
+In one sentence: it turns scattered Taiwan data sites into tools that AI can call directly. Data comes live from the source sites, and every result is returned with its source and link.
+
+## Tools
+
+| Tool | Function | Data source |
+|------|------|----------|
+| `taiwan_scam_check` | Check whether a URL / domain has been reported as a scam by 165 | [fraud.tw](https://fraud.tw) (National Police Agency, Ministry of the Interior, 165) |
+| `taiwan_company_search` | Search by company name to get the unified business number and responsible person | [inc.com.tw](https://inc.com.tw) (Ministry of Economic Affairs company registration) |
+| `taiwan_company_profile` | Look up a company's full registration record by unified business number (including directors and supervisors) | inc.com.tw |
+| `taiwan_person_companies` | Look up by a person's name the companies where they serve as responsible person / director / supervisor | inc.com.tw |
+| `taiwan_company_risk` | Company risk check (by unified business number or company name): dissolution / refused transactions / international sanctions / FSC / judicial / labor / environmental red flags + real-time stock prices for listed companies | inc.com.tw |
+| `taiwan_company_relations` | Company relationship graph: corporate shareholders / reinvested subsidiaries / ultimate parent company / group size / shared director-supervisor network | inc.com.tw |
+| `taiwan_company_name_check` | Company name pre-check / duplicate-name lookup (for naming a startup) | inc.com.tw |
+| `taiwan_company_verify` | Real-time official registration status from the Ministry of Economic Affairs business registration OpenAPI | inc.com.tw |
+| `taiwan_realprice_search` | Search real-estate actual-price registration by address / road section / district | [housetw.com](https://housetw.com) (Ministry of the Interior actual-price registration) |
+| `taiwan_realprice_locate` | Reverse-look up the district and market page from latitude/longitude | housetw.com |
+| `taiwan_realprice_area` | Look up transaction market statistics for a city/county / district | housetw.com |
+| `taiwan_realprice_estimate` | Automatic valuation: unit-price range and estimated total price | housetw.com |
+| `taiwan_realprice_road` | Look up transaction market data and year-by-year trend for a road section | housetw.com |
+| `taiwan_drug_search` | Search approved drugs by Chinese drug name and get the license number | [health-hub](https://health-hub-epx.pages.dev) (TFDA, Ministry of Health and Welfare) |
+| `taiwan_drug_info` | Look up a drug's ingredients / indications / NHI price / recalls / shortages by license number | health-hub |
+| `taiwan_gov_tender_by_company` | Look up government procurement cases a company has bid on / won | Government e-Procurement System (g0v PCC API) |
+| `taiwan_gov_tender_search` | Search government procurement cases by tender-name keyword | Government e-Procurement System (g0v PCC API) |
+| `taiwan_farm_price` | Look up the latest wholesale market prices for fruit and vegetables (produce prices) | Ministry of Agriculture, data.moa.gov.tw |
+
+Chaining across tools is the point: for example, "look up this company → see the housing prices in the district of its registered address → check whether its official site is a scam" — within a single Q&A the AI chains it together on its own.
+
+## Installation
+
+Requires Node.js 18+.
+
+### Claude Desktop
+
+Edit `claude_desktop_config.json` (Settings → Developer → Edit Config):
+
+```json
+{
+  "mcpServers": {
+    "taiwan-data": {
+      "command": "npx",
+      "args": ["-y", "taiwan-data-mcp"]
+    }
+  }
+}
+```
+
+### Claude Code
+
+```bash
+claude mcp add taiwan-data -- npx -y taiwan-data-mcp
+```
+
+### Cursor / Others
+
+For any MCP-capable tool, just point it at `npx -y taiwan-data-mcp` (stdio).
+
+## Example questions
+
+- "Is google.com a scam site?"
+- "What are TSMC's unified business number, responsible person, and capital?"
+- "Roughly what is the median housing price in Xinyi District, Taipei City? Which roads are the most expensive?"
+- "I'm at latitude/longitude 25.034, 121.5645 — what are the housing prices nearby?"
+
+## Development
+
+```bash
+npm install
+npm run smoke   # 直接打活線 API，驗證 6 個工具回得出資料
+node test/e2e.mjs  # MCP 協定層測試
+```
+
+## Data source sites
+
+This tool's data comes live from the following sites, and every query result is also labeled with its source and link:
+
+- Actual-price registration market data — **[housetw.com](https://housetw.com)** (RealPrice Radar)
+- Company registration checks — **[inc.com.tw](https://inc.com.tw)** (Taiwan Company Registration site)
+- 165 anti-fraud lookup — **[fraud.tw](https://fraud.tw)** (Fraud Radar)
+- Drug / health lookup — **[health-hub](https://health-hub-epx.pages.dev)** (TFDA, Ministry of Health and Welfare data)
+- Government tender lookup — Government e-Procurement System open data (via [g0v PCC API](https://pcc.g0v.ronny.tw))
+- Agricultural wholesale market data — Ministry of Agriculture open data ([data.moa.gov.tw](https://data.moa.gov.tw))
+
+All three sites are free lookup services that aggregate Taiwan government open data.
+
+## Data and disclaimer
+
+Data is retrieved live from the public APIs of the sites above, with content based on government open data. It is for reference only and does not constitute investment, legal, or transaction advice. A scam lookup result indicates "whether it has been reported"; not having been reported does not mean it is absolutely safe.
 
 ## License
 
